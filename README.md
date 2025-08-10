@@ -55,9 +55,9 @@ Performance was evaluated using **Accuracy**, **Precision**, **Recall**, **F1-Sc
 ### ROC Curve Visualization
 Below are the ROC curves for the classification models:
 
-![alt text](image-5.png)
-![alt text](image-4.png)
-![alt text](image-3.png)
+![alt text](roc_auc_curve_images\image-5.png)
+![alt text](roc_auc_curve_images\image-4.png)
+![alt text](roc_auc_curve_images\image-3.png)
 ---
 
 ### Business Perspective
