@@ -80,7 +80,7 @@ Below are the ROC curves for the classification models:
 
 ## 4.1 Best Model Selection – Classification Task
 
-**Recommendation:** **Logistic Regression** with the `selected_features_1` subset.  
+**Logistic Regression** with the `selected_features_1` subset.  
 - **Business Justification:** Captures a higher proportion of churners while keeping the model explainable for strategy teams.  
 - **Technical Justification:** Competitive ROC AUC (0.6687) with the best overall recall for the business goal, without overfitting.
 
@@ -120,7 +120,7 @@ Performance was evaluated using **MAE**, **RMSE**, and **R²** on the test set.
 
 ## 4.2 Best Model Selection – Regression Task
 
-**Recommendation:** **Lasso Regression** with α=1.0.  
+**Lasso Regression** with α=1.0.  
 - **Business Justification:** Marginally best MAE and RMSE; simplest model to maintain until better data is available.  
 - **Technical Justification:** Regularization helps avoid overfitting while providing sparse coefficients, but root cause of poor performance is lack of informative features.
 
