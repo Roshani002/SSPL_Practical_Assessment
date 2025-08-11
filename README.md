@@ -103,11 +103,10 @@ Performance was evaluated using **MAE**, **RMSE**, and **R²** on the test set.
 ---
 
 ### Business Perspective
-- All models show **negative R²**, meaning they perform worse than predicting the mean monthly charge.
-- Differences in MAE/RMSE are marginal across models, suggesting that the current dataset has **weak predictive signal** for monthly charges.
-- **Lasso Regression** achieved the lowest MAE/RMSE, but the improvement is negligible from a business standpoint.
 
-**Key takeaway:** Predictions are not reliable for accurate revenue forecasting in the current state. Additional data (e.g., usage, regional pricing, promotional history) is needed to make this task viable.
+All regression models show **negative R²**, i.e., they do worse than predicting the mean bill. That’s **not a modeling “oops”**; it signals that the **current dataset doesn’t encode the pricing logic ConnectMe actually uses. When customers with zero services are billed about the same as heavy users**, any model—linear or boosted—will gravitate to the mean. In this state, monthly-revenue forecasting would be unreliable for planning. We should treat these results as a data audit alarm, not a dead end.
+
+**Key takeaway:** Predictions are not reliable for accurate revenue forecasting in the current state. Additional data (e.g., usage, regional pricing, promotional history) and correct pricing logic is needed to make this task viable.
 
 ---
 
@@ -116,13 +115,36 @@ Performance was evaluated using **MAE**, **RMSE**, and **R²** on the test set.
 - Regularized linear models (Ridge, Lasso) did not significantly outperform the baseline, suggesting the issue is not overfitting or multicollinearity but **data quality and feature relevance**.
 - Tree-based models (Random Forest, XGBoost) also failed to capture meaningful non-linear relationships with the current features.
 
+#### **Data Quality Diagnostics — Evidence from the Dataset**
+Below are contradictions observed in the notebook that break the expected relationship between services and MonthlyCharges (all means are ~₹):
+
+1. Baseline sanity (expected high):
+Phone service active and 4 internet services (InternetService=Fiber optic or DSL, MultipleLines=No, PhoneService=1, TotalInternetServicesUsed=4) → avg ≈ 70.7.
+
+2. Contradiction A — **No services, still high charges**:
+No internet, no phone, no multiline, 0 total services (InternetService_No=1, PhoneService=0, MultipleLines=0, TotalInternetServicesUsed=0) → 172 records, avg ≈ 71.1.
+
+3. Contradiction B — **Only 1 service, still ~same as heavy users**:
+Has internet, no phone, no multiline, 1 total service (InternetService_No=Fiber optic or DSL, PhoneService=0, MultipleLines=0, TotalInternetServicesUsed=1) → 90 records, avg ≈ 70.1.
+
+4. Contradiction C — **Fiber + 3 services, but very low bills**:
+InternetService_Fiber optic=1, no phone, no multiline, 3 total services, and MonthlyCharges < 40 → 7 records, avg ≈ 29.0.
+
+- **Why this matters: these patterns make the same feature combinations map to very different bills, and very different combinations map to the same bill. That’s pure noise from a model’s point of view.**
+
+- Why models struggle (and why this isn’t just “bad model choice”)
+**Low signal / high noise:** MonthlyCharges hovers around ~₹70 across conflicting usage states, so models learn “predict the mean.” Negative R² is the natural outcome.
+
+- Inconsistent feature–target logic: Flags like InternetService_No, per-service indicators, and TotalInternetServicesUsed are not mutually consistent with the target in many rows (examples above). That breaks any deterministic mapping—linear or non-linear.
+
+- Tried and ruled out: Regularized linear models (Ridge/Lasso), tree ensembles (RF/XGB), tuning, and alternate encodings were attempted; deltas in MAE/RMSE were marginal. The bottleneck is data fidelity, not hyperparameters.
+
 ---
 
 ## 4.2 Best Model Selection – Regression Task
 
 **Lasso Regression** with α=1.0.  
-- **Business Justification:** Marginally best MAE and RMSE; simplest model to maintain until better data is available.  
-- **Technical Justification:** Regularization helps avoid overfitting while providing sparse coefficients, but root cause of poor performance is lack of informative features.
+Lasso Regression (α=1.0) delivers the lowest MAE/RMSE among close contenders and stays simple while we repair the dataset. Once contradictions are fixed and real billing logic is added, we should re-benchmark all three families (Linear/Lasso, RF, XGBoost).
 
 
 
